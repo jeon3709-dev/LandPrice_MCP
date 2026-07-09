@@ -1,0 +1,6 @@
+# 개발/테스트용 의존성 (배포 런타임에는 불필요)
+# 사용: pip install -r requirements-dev.txt
+-r requirements.txt
+
+# test_api.py / test_all_apis.py / test_apis.py 에서 사용
+requests>=2.30.0
