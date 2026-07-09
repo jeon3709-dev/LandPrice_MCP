@@ -41,9 +41,14 @@ python -m venv .venv
 # 가상환경 활성화 (Windows)
 .venv\Scripts\activate
 
-# 의존성 설치
+# 서버 구동용 의존성 설치
 pip install -r requirements.txt
+
+# (선택) 테스트 스크립트까지 실행하려면 개발용 의존성 추가 설치
+pip install -r requirements-dev.txt
 ```
+
+> `requirements.txt`는 서버 구동에 필요한 최소 런타임 의존성만 담고 있습니다. `test_api.py` 등 검증 스크립트는 `requests`를 사용하므로 `requirements-dev.txt`로 별도 설치합니다.
 
 ### 2. 환경 변수 설정
 프로젝트 루트 폴더에 `.env` 파일을 생성하고 공공데이터포털에서 발급받은 일반 인증키(Decoding 키 권장)를 설정합니다.
@@ -59,7 +64,7 @@ PORT=8080
 ### 3. 로컬 테스트 및 API 검증
 연결성 및 툴 작동 여부를 사전에 자가진단할 수 있는 통합 검증 스크립트를 제공합니다.
 ```bash
-# 로컬 통합 테스트 실행
+# 로컬 통합 테스트 실행 (requirements-dev.txt 설치 필요)
 .venv\Scripts\python.exe test_api.py
 ```
 
@@ -78,17 +83,18 @@ PORT=8080
 
 ## ☁️ 클라우드타입(Cloudtype) 배포 방법
 
-이 프로젝트는 클라우드타입의 **Python Web App** 또는 **Dockerfile 빌드**를 지원하도록 패키징되어 있습니다.
+이 프로젝트는 클라우드타입의 **Python Web App** 배포를 지원하도록 패키징되어 있습니다.
 
-1. **GitHub 저장소 연동**: 본 코드를 GitHub 리포지토리에 푸시합니다.
+1. **GitHub 저장소 연동**: 본 코드를 GitHub 리포지토리(`main` 브랜치)에 푸시합니다.
 2. **클라우드타입 새 프로젝트 생성**:
    * **종류**: Python
    * **빌드 명령**: `pip install -r requirements.txt`
-   * **실행 명령**: `python server.py` (또는 `Procfile`을 감지하여 자동 적용)
+   * **실행 명령**: 비워두면 `Procfile`의 `web: python server.py`가 자동 적용됩니다.
+   * **포트**: `8080` (클라우드타입이 주입하는 `PORT` 환경변수를 서버가 자동으로 읽습니다.)
 3. **환경변수(Secrets) 등록**:
-   * `MOLIT_SERVICE_KEY`: 발급받은 실거래가 공용 인증키 입력
+   * `MOLIT_SERVICE_KEY`: 발급받은 실거래가 공용 인증키(Decoding 키) 입력
 4. **배포**: 배포 완료 후 제공되는 도메인 주소(예: `https://port-0-molit-rtms-mcp-xxxxx.cloudtype.app`)를 확인합니다.
-5. **헬스체크**: 웹 브라우저로 서비스 루트 경로(`https://[your-domain]/`)에 접속하여 `ok`가 반환되는지 확인합니다.
+5. **헬스체크**: 웹 브라우저로 서비스 루트 경로(`https://[your-domain]/`)에 접속하여 `ok`가 반환되는지 확인합니다. MCP 엔드포인트는 `https://[your-domain]/mcp` 입니다.
 
 ---
 
@@ -97,14 +103,15 @@ PORT=8080
 `claude_desktop_config.json`에 다음 중 하나의 방식을 추가하여 프롬프트 상에서 즉시 조회 툴을 사용할 수 있습니다.
 
 ### 1. 원격 배포 방식 (클라우드타입 배포 후 권장)
+원격 Streamable HTTP 서버에 연결할 때는 `mcp-remote` 브리지를 사용합니다. (Node.js 설치 필요)
 ```json
 {
-  "mclient": {
+  "mcpServers": {
     "molit-rtms-mcp": {
       "command": "npx",
       "args": [
         "-y",
-        "@modelcontextprotocol/client-cli",
+        "mcp-remote",
         "https://port-0-molit-rtms-mcp-xxxxx.cloudtype.app/mcp"
       ]
     }
@@ -115,7 +122,7 @@ PORT=8080
 ### 2. 로컬 Stdio 방식
 ```json
 {
-  "mclient": {
+  "mcpServers": {
     "molit-rtms-mcp": {
       "command": "C:\\Users\\10564\\Documents\\LandPrice_MCP\\.venv\\Scripts\\python.exe",
       "args": [
@@ -129,6 +136,8 @@ PORT=8080
   }
 }
 ```
+
+> 설정을 저장한 뒤 Claude Desktop을 완전히 종료 후 재시작해야 커넥터가 인식됩니다.
 
 ---
 
