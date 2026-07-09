@@ -1,0 +1,8 @@
+mcp>=0.1.0
+httpx>=0.24.0
+python-dotenv>=1.0.0
+uvicorn>=0.30.0
+PublicDataReader>=1.0.0
+pandas>=1.5.0
+xmltodict>=0.13.0
+requests>=2.30.0
